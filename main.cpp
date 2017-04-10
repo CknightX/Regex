@@ -2,16 +2,16 @@
 #include<string>
 #include<vector>
 #include<memory>
-#include "test.h"
+#include "nfa.h"
 using namespace std;
 
 
 int main()
 {
 	
-	//Parser a("(ab.+)*|a*");
-	//auto b = a.GenTree();
-	A a;
+	Parser a("a*"); //(ab.+)*|a*
+	auto b = a.GenTree();
+	NFA c(b);
 	cin.get();
-
+	return 0;
 }
