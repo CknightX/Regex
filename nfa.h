@@ -41,6 +41,7 @@ public:
 	NFA(Node* tree);
 	~NFA();
 private:
+	//pair中的指针分别为该子图的start和end
 	pair<Status*,Status*> gen_status(Node* node);
 	pair<Status*, Status*> gen_and(Node* node);
 	pair<Status*, Status*> gen_or(Node* node);
@@ -52,13 +53,17 @@ private:
 	Edge* make_edge(Status* status1, _MatchContent content, Status* status2);
 	Edge* make_edge(Status* status1, Status* status2);
 
-	vector<Edge*> AllEdges;
-	vector<Status*> AllStatus;
-	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s)==AllStatus.end()); }
+	vector<Edge*> AllEdges; //考虑替换为hash表，提高效率。map<Status*,Edge_link>
+	vector<Status*> AllStatus; 
+
+	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s)==AllStatus.end()); } //状态是否存在
+	bool _isEedge(Edge* edge){ return (edge->MatchContent.left == -1); } //是否为E边
+
 	void add_edge(Edge* edge){ AllEdges.push_back(edge); }
 	void add_status(Status* s){ AllStatus.push_back(s); }
+	void del_edge(vector<Edge*>::iterator pointer){ delete(*pointer); AllEdges.erase(pointer); }
 
 	void eraseE();
-	void nfa2dfa();
+	void E2NFA();
 };
 #endif

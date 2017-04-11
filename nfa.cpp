@@ -1,4 +1,7 @@
 #include "nfa.h"
+#include <queue>
+#include<algorithm>
+using namespace std;
 NFA::NFA(Node* Tree)
 {
 	gen_status(Tree);
@@ -130,12 +133,83 @@ Edge* NFA::make_edge(Status* status1, Status* status2)
 	return make_edge(status1, _MatchContent(-1, -1), status2);
 }
 
-void NFA::eraseE() //消除所有E边
+
+void NFA::E2NFA() //NFA转化为DFA
 {
+	vector<Status*> valid_status;
+	valid_status.push_back(*(AllStatus.begin())); //start为有效状态
+	for (auto status : AllStatus)
+	{
+		bool exist_valid = false;
+		for (auto edge:status->InEdges)
+		{
+			if (!_isEedge(edge))
+			{
+				exist_valid = true;
+				break;
+			}
+		}
+		if (exist_valid)
+			valid_status.push_back(status);
+	} //获得有效状态
+
+	for (auto status : valid_status) //寻找有效状态的E-closure,并将其延伸的有效边复制到有效状态上
+	{
+		vector<Status*> closure_status;
+		queue<Status*> uncomplete_status;
+		uncomplete_status.push(status);
+		while (!uncomplete_status.empty()) 
+		{
+			Status* head = uncomplete_status.front();
+			uncomplete_status.pop();
+			for (auto edge : AllEdges)
+			{
+				if (_isEedge(edge) && head == edge->Start) //以该状态为起始的E边
+				{
+					uncomplete_status.push(edge->End);
+					if (find(closure_status.begin(), closure_status.end(), edge->End) == closure_status.end()) //是否必要？
+						closure_status.push_back(edge->End); 
+				}
+			}
+		} //已获得当前status的所有E闭包
+		vector<Edge*> valid_edges; //所有由E闭包延伸出的非E边
+		for (auto E_status : closure_status)
+		{
+			for (auto edge : E_status->OutEdges)
+			{
+				if (!_isEedge(edge))
+					valid_edges.push_back(edge);
+			}
+		}
+		for (auto edge : valid_edges)  //将有效边复制到有效状态上
+		{
+			edge->Start = status; 
+		}
+
+	}
+	eraseE(); //删除所有E边以及只通过E边到达的状态
 
 }
-
-void NFA::nfa2dfa() //NFA转化为DFA
+void NFA::eraseE() 
 {
+	AllEdges.erase(remove_if(AllEdges.begin(), AllEdges.end(),
+		[](Edge* e){return e->MatchContent.left == -1; }),AllEdges.end()); //删除所有E边
+	vector<typename vector<Status*>::iterator > invalid_status;
+	for (auto status = AllStatus.begin(); status != AllStatus.end();++status)
+	{
+		bool is_valid = false;
+		for (auto edge : (*status)->InEdges)
+		{
+			if (!_isEedge(edge))
+			{
+				is_valid = true;
+				break;
+			}
+		}
+		if (!is_valid)
+			invalid_status.push_back(status);
+	}
 
+	for (auto status : invalid_status) //删除所有无效状态
+		AllStatus.erase(status);
 }
