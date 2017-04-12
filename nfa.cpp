@@ -5,6 +5,7 @@ using namespace std;
 NFA::NFA(Node* Tree)
 {
 	gen_status(Tree);
+	E2NFA();
 }
 NFA::~NFA()
 {
@@ -40,13 +41,15 @@ pair<Status*, Status*> NFA::gen_repeat_0(Node* node)
 	Repeat_Node* repeat_node = static_cast<Repeat_Node*>(node);
 	Status* s_start = new Status;
 	Status* s_end = s_start;
-	Status* _s_start = new Status;
-	Status* _s_end = new Status;
+	Status* _s_start = nullptr;
+	Status* _s_end = nullptr;
 	pair<Status*, Status*> s_child = gen_status(repeat_node->node);
-	make_edge(_s_start, s_child.first);
-	make_edge(s_child.second, _s_end);
+	_s_start = s_child.first;
+	_s_end = s_child.second;
 	make_edge(s_start, _s_start);
 	make_edge(_s_end, s_end);
+
+	start_status = s_start;
 	return make_pair(s_start, s_end);
 
 }
@@ -64,6 +67,8 @@ pair<Status*, Status*> NFA::gen_repeat_1(Node* node)
 	make_edge(s_child.second, _s_end);
 	make_edge(s_end, _s_start);
 	make_edge(_s_end, s_end);
+
+	start_status = s_start;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_and(Node* node)
@@ -82,6 +87,7 @@ pair<Status*, Status*> NFA::gen_and(Node* node)
 		}
 		s_end = ((make_edge(s_end,tmp.first)))->End;
 	}
+	start_status = s_start;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_or(Node* node)
@@ -95,6 +101,7 @@ pair<Status*, Status*> NFA::gen_or(Node* node)
 		make_edge(s_start, tmp.first);
 		make_edge(tmp.second, s_end);
 	}
+	start_status = s_start;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_char(Node* node)
@@ -103,6 +110,8 @@ pair<Status*, Status*> NFA::gen_char(Node* node)
 	Status* s_start = new Status;
 	Status* s_end = new Status(true);
 	Edge* edge = make_edge(s_start, _MatchContent(char_node->c, char_node->c), s_end);
+
+	start_status = s_start;
 	return make_pair(s_start,s_end);
 }
 pair<Status*, Status*> NFA::gen_range(Node* node)
@@ -111,9 +120,11 @@ pair<Status*, Status*> NFA::gen_range(Node* node)
 	Status* s_start = new Status;
 	Status* s_end = new Status(true);
 	Edge* edge = make_edge(s_start, _MatchContent(char_node->i, char_node->j), s_end);
+
+	start_status = s_start;
 	return make_pair(s_start,s_end);
 }
-Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2)
+Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd)
 {
 	if (status1->IsFinal)
 		status1->IsFinal = false;
@@ -124,20 +135,21 @@ Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2)
 		add_status(status1);
 	if (!_isStatusExist(status2))
 		add_status(status2);
-	AllEdges.push_back(edge);
+	if (isAdd)
+		AllEdges.push_back(edge);
 	return edge;
 }
 
-Edge* NFA::make_edge(Status* status1, Status* status2)
+Edge* NFA::make_edge(Status* status1, Status* status2,bool isAdd)
 {
-	return make_edge(status1, _MatchContent(-1, -1), status2);
+	return make_edge(status1, _MatchContent(-1, -1), status2,isAdd);
 }
 
 
 void NFA::E2NFA() //NFA转化为DFA
 {
 	vector<Status*> valid_status;
-	valid_status.push_back(*(AllStatus.begin())); //start为有效状态
+	valid_status.push_back(start_status); //start为有效状态
 	for (auto status : AllStatus)
 	{
 		bool exist_valid = false;
@@ -152,7 +164,8 @@ void NFA::E2NFA() //NFA转化为DFA
 		if (exist_valid)
 			valid_status.push_back(status);
 	} //获得有效状态
-
+	vector<Edge*> edges_add;
+	vector<Edge*> E_edges; //需要被设置为E的边
 	for (auto status : valid_status) //寻找有效状态的E-closure,并将其延伸的有效边复制到有效状态上
 	{
 		vector<Status*> closure_status;
@@ -183,33 +196,38 @@ void NFA::E2NFA() //NFA转化为DFA
 		}
 		for (auto edge : valid_edges)  //将有效边复制到有效状态上
 		{
-			edge->Start = status; 
+			make_edge(status, edge->MatchContent, edge->End); //需要复制的边
+			E_edges.push_back(edge);
 		}
 
 	}
+	//AllEdges.insert(AllEdges.end(), edges_add.begin(), edges_add.end());
+	for_each(E_edges.begin(), E_edges.end(), [&](Edge* edge){set_edge_E(edge); }); //将所有被复制的边设置为E
 	eraseE(); //删除所有E边以及只通过E边到达的状态
 
+}
+bool NFA::_isValidStatus(Status* s)
+{
+	if (s == start_status)
+		return true; //start_status 保留
+	bool is_valid = false;
+	if (s->InEdges.empty()) return true;
+	for (auto edge : (s)->InEdges)
+	{
+		if (!_isEedge(edge))
+		{
+			is_valid = true;
+			break;
+		}
+	}
+	return is_valid;
 }
 void NFA::eraseE() 
 {
 	AllEdges.erase(remove_if(AllEdges.begin(), AllEdges.end(),
 		[](Edge* e){return e->MatchContent.left == -1; }),AllEdges.end()); //删除所有E边
-	vector<typename vector<Status*>::iterator > invalid_status;
-	for (auto status = AllStatus.begin(); status != AllStatus.end();++status)
-	{
-		bool is_valid = false;
-		for (auto edge : (*status)->InEdges)
-		{
-			if (!_isEedge(edge))
-			{
-				is_valid = true;
-				break;
-			}
-		}
-		if (!is_valid)
-			invalid_status.push_back(status);
-	}
 
-	for (auto status : invalid_status) //删除所有无效状态
-		AllStatus.erase(status);
+	AllStatus.erase(remove_if(AllStatus.begin(), AllStatus.end(), 
+		[&](Status* s){return !_isValidStatus(s);}),AllStatus.end()); //删除所有无效状态
+
 }

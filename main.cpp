@@ -9,7 +9,7 @@ using namespace std;
 int main()
 {
 	
-	Parser a("a*"); //(ab.+)*|a*
+	Parser a("(ab|cd)*"); //(ab.+)*|a*
 	auto b = a.GenTree();
 	NFA c(b);
 	cin.get();

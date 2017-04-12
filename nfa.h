@@ -50,18 +50,22 @@ private:
 	pair<Status*, Status*> gen_repeat_0(Node* node);
 	pair<Status*, Status*> gen_repeat_1(Node* node);
 
-	Edge* make_edge(Status* status1, _MatchContent content, Status* status2);
-	Edge* make_edge(Status* status1, Status* status2);
+	Status* start_status;
+
+	Edge* make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd=true);
+	Edge* make_edge(Status* status1, Status* status2,bool isAdd=true);
 
 	vector<Edge*> AllEdges; //考虑替换为hash表，提高效率。map<Status*,Edge_link>
 	vector<Status*> AllStatus; 
 
 	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s)==AllStatus.end()); } //状态是否存在
 	bool _isEedge(Edge* edge){ return (edge->MatchContent.left == -1); } //是否为E边
+	bool _isValidStatus(Status* s);
 
 	void add_edge(Edge* edge){ AllEdges.push_back(edge); }
 	void add_status(Status* s){ AllStatus.push_back(s); }
 	void del_edge(vector<Edge*>::iterator pointer){ delete(*pointer); AllEdges.erase(pointer); }
+	void set_edge_E(Edge* edge){ edge->MatchContent.left = edge->MatchContent.right = -1; }
 
 	void eraseE();
 	void E2NFA();
