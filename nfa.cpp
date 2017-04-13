@@ -129,14 +129,15 @@ Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2,boo
 	if (status1->IsFinal)
 		status1->IsFinal = false;
 	auto edge = new Edge(status1, content, status2);
-	status1->OutEdges.push_back(edge);
-	status2->InEdges.push_back(edge);
-	if (!_isStatusExist(status1))
-		add_status(status1);
-	if (!_isStatusExist(status2))
-		add_status(status2);
+
 	if (isAdd)
-		AllEdges.push_back(edge);
+	{
+		if (!_isStatusExist(status1))
+			add_status(status1);
+		if (!_isStatusExist(status2))
+			add_status(status2);
+		add_edge(edge);
+	}
 	return edge;
 }
 
@@ -196,22 +197,28 @@ void NFA::E2NFA() //NFA转化为DFA
 		}
 		for (auto edge : valid_edges)  //将有效边复制到有效状态上
 		{
-			make_edge(status, edge->MatchContent, edge->End); //需要复制的边
+			edges_add.push_back (make_edge(status, edge->MatchContent, edge->End, false)); //需要复制的边
 			E_edges.push_back(edge);
 		}
 
 	}
-	//AllEdges.insert(AllEdges.end(), edges_add.begin(), edges_add.end());
 	for_each(E_edges.begin(), E_edges.end(), [&](Edge* edge){set_edge_E(edge); }); //将所有被复制的边设置为E
+
 	eraseE(); //删除所有E边以及只通过E边到达的状态
+
+	for_each(edges_add.begin(), edges_add.end(), [&](Edge* edge){add_edge(edge); }); //加入新创建的边
+
+	AllStatus.erase(remove_if(AllStatus.begin(), AllStatus.end(), 
+		[&](Status* s){return !_isValidStatus(s);}),AllStatus.end()); //删除所有无效状态
 
 }
 bool NFA::_isValidStatus(Status* s)
 {
 	if (s == start_status)
 		return true; //start_status 保留
+	if (s->InEdges.empty())
+		return false;
 	bool is_valid = false;
-	if (s->InEdges.empty()) return true;
 	for (auto edge : (s)->InEdges)
 	{
 		if (!_isEedge(edge))
@@ -224,10 +231,8 @@ bool NFA::_isValidStatus(Status* s)
 }
 void NFA::eraseE() 
 {
-	AllEdges.erase(remove_if(AllEdges.begin(), AllEdges.end(),
-		[](Edge* e){return e->MatchContent.left == -1; }),AllEdges.end()); //删除所有E边
+	for_each(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){destroy_edge(edge); }); //destroy每条E边
+	AllEdges.erase(AllEdges.begin(), AllEdges.end()); //从AllEdges删除所有E边
 
-	AllStatus.erase(remove_if(AllStatus.begin(), AllStatus.end(), 
-		[&](Status* s){return !_isValidStatus(s);}),AllStatus.end()); //删除所有无效状态
 
 }

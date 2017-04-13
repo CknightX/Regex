@@ -15,7 +15,7 @@ class Edge
 {
 public:
 	Edge(Status* s, _MatchContent m ,Status* e) :Start(s), End(e), MatchContent(m){}
-	~Edge();
+	~Edge(){} //释放边并不释放其起点和终点
 	_MatchContent MatchContent;
 	Status* Start;
 	Status* End;
@@ -42,7 +42,7 @@ public:
 	~NFA();
 private:
 	//pair中的指针分别为该子图的start和end
-	pair<Status*,Status*> gen_status(Node* node);
+	pair<Status*, Status*> gen_status(Node* node);
 	pair<Status*, Status*> gen_and(Node* node);
 	pair<Status*, Status*> gen_or(Node* node);
 	pair<Status*, Status*> gen_char(Node* node);
@@ -52,20 +52,26 @@ private:
 
 	Status* start_status;
 
-	Edge* make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd=true);
-	Edge* make_edge(Status* status1, Status* status2,bool isAdd=true);
+	Edge* make_edge(Status* status1, _MatchContent content, Status* status2, bool isAdd = true);
+	Edge* make_edge(Status* status1, Status* status2, bool isAdd = true);
 
-	vector<Edge*> AllEdges; //考虑替换为hash表，提高效率。map<Status*,Edge_link>
-	vector<Status*> AllStatus; 
+	vector<Edge*> AllEdges; //考虑替换为map，提高效率。map<Status*,Edge_link>
+	vector<Status*> AllStatus;
 
-	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s)==AllStatus.end()); } //状态是否存在
+	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s) == AllStatus.end()); } //状态是否存在
 	bool _isEedge(Edge* edge){ return (edge->MatchContent.left == -1); } //是否为E边
 	bool _isValidStatus(Status* s);
 
-	void add_edge(Edge* edge){ AllEdges.push_back(edge); }
+	void add_edge(Edge* edge){ AllEdges.push_back(edge); edge->Start->OutEdges.push_back(edge); edge->End->InEdges.push_back(edge); }
 	void add_status(Status* s){ AllStatus.push_back(s); }
-	void del_edge(vector<Edge*>::iterator pointer){ delete(*pointer); AllEdges.erase(pointer); }
 	void set_edge_E(Edge* edge){ edge->MatchContent.left = edge->MatchContent.right = -1; }
+	void destroy_edge(Edge* edge)
+	{
+		edge->Start->OutEdges.erase(find(edge->Start->OutEdges.begin(), edge->Start->OutEdges.end(), edge)); //删除起点的出边
+		edge->End->InEdges.erase(find(edge->End->InEdges.begin(), edge->End->InEdges.end(), edge)); //删除终点的出边
+		delete edge; //释放内存
+		//注意，此时还未从AllEdge中删除此边
+	}
 
 	void eraseE();
 	void E2NFA();
