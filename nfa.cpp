@@ -4,7 +4,9 @@
 using namespace std;
 NFA::NFA(Node* Tree)
 {
-	gen_status(Tree);
+	auto status=gen_status(Tree);
+	start_status = status.first;
+	end_status = status.second;
 	E2NFA();
 }
 NFA::~NFA()
@@ -85,7 +87,8 @@ pair<Status*, Status*> NFA::gen_and(Node* node)
 			s_end = tmp.second;
 			continue;
 		}
-		s_end = ((make_edge(s_end,tmp.first)))->End;
+		make_edge(s_end,tmp.first);
+		s_end = tmp.second;
 	}
 	start_status = s_start;
 	return make_pair(s_start, s_end);
@@ -176,13 +179,12 @@ void NFA::E2NFA() //NFA转化为DFA
 		{
 			Status* head = uncomplete_status.front();
 			uncomplete_status.pop();
-			for (auto edge : AllEdges)
+			for (auto edge : head->OutEdges)
 			{
-				if (_isEedge(edge) && head == edge->Start) //以该状态为起始的E边
+				if (_isEedge(edge)) //以该状态为起始的E边
 				{
 					uncomplete_status.push(edge->End);
-					if (find(closure_status.begin(), closure_status.end(), edge->End) == closure_status.end()) //是否必要？
-						closure_status.push_back(edge->End); 
+					closure_status.push_back(edge->End);
 				}
 			}
 		} //已获得当前status的所有E闭包
@@ -214,7 +216,7 @@ void NFA::E2NFA() //NFA转化为DFA
 }
 bool NFA::_isValidStatus(Status* s)
 {
-	if (s == start_status)
+	if (s == start_status || s == end_status)
 		return true; //start_status 保留
 	if (s->InEdges.empty())
 		return false;
@@ -231,8 +233,7 @@ bool NFA::_isValidStatus(Status* s)
 }
 void NFA::eraseE() 
 {
-	for_each(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){destroy_edge(edge); }); //destroy每条E边
-	AllEdges.erase(AllEdges.begin(), AllEdges.end()); //从AllEdges删除所有E边
-
+	//for_each(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){if (_isEedge(edge))destroy_edge(edge); }); //destroy每条E边
+	AllEdges.erase(remove_if(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){if (_isEedge(edge)) { destroy_edge(edge); return true; } return false; }), AllEdges.end()); //从AllEdges删除所有E边
 
 }

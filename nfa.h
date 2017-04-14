@@ -8,6 +8,7 @@ struct _MatchContent
 {
 	_MatchContent(int l, int r) :left(l), right(r){}
 	int left, right; //匹配的左右边界
+	bool operator==(const _MatchContent& m){ return left == m.left&&right == m.right; }
 };
 
 class Status;
@@ -40,7 +41,8 @@ class NFA
 public:
 	NFA(Node* tree);
 	~NFA();
-private:
+
+public:
 	//pair中的指针分别为该子图的start和end
 	pair<Status*, Status*> gen_status(Node* node);
 	pair<Status*, Status*> gen_and(Node* node);
@@ -51,6 +53,7 @@ private:
 	pair<Status*, Status*> gen_repeat_1(Node* node);
 
 	Status* start_status;
+	Status* end_status;
 
 	Edge* make_edge(Status* status1, _MatchContent content, Status* status2, bool isAdd = true);
 	Edge* make_edge(Status* status1, Status* status2, bool isAdd = true);
