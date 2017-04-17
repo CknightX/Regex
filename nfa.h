@@ -22,6 +22,7 @@ public:
 	Status* End;
 };
 
+
 class Status
 {
 public:
@@ -32,7 +33,6 @@ public:
 	bool IsFinal;
 
 };
-
 
 
 
