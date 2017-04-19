@@ -8,6 +8,7 @@ NFA::NFA(Node* Tree)
 	start_status = status.first;
 	end_status = status.second;
 	E2NFA();
+	//find_end_status();
 }
 NFA::~NFA()
 {
@@ -87,6 +88,7 @@ pair<Status*, Status*> NFA::gen_and(Node* node)
 			s_end = tmp.second;
 			continue;
 		}
+		s_end->IsFinal = false;
 		make_edge(s_end,tmp.first);
 		s_end = tmp.second;
 	}
@@ -129,8 +131,10 @@ pair<Status*, Status*> NFA::gen_range(Node* node)
 }
 Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd)
 {
+	/*
 	if (status1->IsFinal)
 		status1->IsFinal = false;
+		*/
 	auto edge = new Edge(status1, content, status2);
 
 	if (isAdd)
@@ -216,7 +220,7 @@ void NFA::E2NFA() //NFA转化为DFA
 }
 bool NFA::_isValidStatus(Status* s)
 {
-	if (s == start_status || s == end_status)
+	if (s == start_status)
 		return true; //start_status 保留
 	if (s->InEdges.empty())
 		return false;
@@ -236,4 +240,11 @@ void NFA::eraseE()
 	//for_each(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){if (_isEedge(edge))destroy_edge(edge); }); //destroy每条E边
 	AllEdges.erase(remove_if(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){if (_isEedge(edge)) { destroy_edge(edge); return true; } return false; }), AllEdges.end()); //从AllEdges删除所有E边
 
+}
+void NFA::find_end_status()
+{
+	for_each(AllStatus.begin(), AllStatus.end(),[&](Status* status){
+		if (status->OutEdges.size() == 0)//入边为0
+			status->IsFinal = true;
+	});
 }

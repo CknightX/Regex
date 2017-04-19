@@ -3,17 +3,22 @@
 #include "nfa.h"
 #include <vector>
 #include<queue>
+#include<set>
 using namespace std;
 
 class DFA_Status
 {
 public:
-	vector<Edge*> OutEdges; //DFA的状态只需保留出边
-	bool operator==(const DFA_Status& status);
+	DFA_Status():IsFinal(false){}
+	DFA_Status(Status* status){ add_nfa(status); } //以单个NFA状态构造DFA状态
+	set<Status*> status_set; //对应NFA的状态
+	void add_nfa(Status* status){ status_set.insert(status); if (status->IsFinal)IsFinal = true; } //加入NFA状态
+	bool IsFinal;
 };
 class DFA_Edge
 {
 public:
+	DFA_Edge(DFA_Status* b, _MatchContent content, DFA_Status* e) :Begin(b), MatchContent(content), End(e){}
 	_MatchContent MatchContent;
 	DFA_Status* Begin;
 	DFA_Status* End;
@@ -35,14 +40,18 @@ class DFA
 {
 public:
 	DFA(NFA& nfa){ constructDFA(nfa); }
+	void _test(){ cout << AllEdges.size() <<endl<< AllStatus.size(); }
 	~DFA(){}
 private:
 	void constructDFA(NFA& nfa);
-	vector<Edge*> DFAEdges;
+	vector<DFA_Edge*> AllEdges;
+	vector<DFA_Status*> AllStatus;
 	 
 };
 
 
-DFA_Edge* make_edge(Status* b, _MatchContent content, Status* e);
-DFA_Status* Set2Status(const StateSet& _set); //将状态集合转化为单个状态
+DFA_Edge* make_edge(DFA_Status* b, _MatchContent content, DFA_Status* e);
+int is_status_exist(DFA_Status* dfa_status, vector<DFA_Status*>& d); //在d中搜寻是否有dfa_status的存在（注意DFA状态的相等是指其中所含有的NFA状态一致）
+bool is_dfa_status_equal(DFA_Status* status1, DFA_Status* status2);
+
 #endif

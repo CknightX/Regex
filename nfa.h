@@ -78,5 +78,6 @@ public:
 
 	void eraseE();
 	void E2NFA();
+	void find_end_status();
 };
 #endif

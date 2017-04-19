@@ -15,91 +15,75 @@ bool StateSet::operator==(const StateSet& _set)
 }
 void DFA::constructDFA(NFA& nfa)
 {
-	/*
-	queue<StateSet> L; //未被处理的NFA状态
-	vector<StateSet> D;//已经存在的DFA状态
-	StateSet tmp;
-	tmp.add_state(nfa.start_status); 
-	L.push(tmp); //先将start_status加入队列L
-	D.push_back(tmp);
+	queue<DFA_Status*> L;  //未被处理的状态
+	vector<DFA_Status*> D; //已经存在的DFA状态  
+	L.push(new DFA_Status(nfa.start_status));
+	D.push_back(new DFA_Status(nfa.start_status));//加入开始状态
+
 	while (!L.empty())
 	{
-		auto head = L.front();
-		L.pop();
-		vector<pair<_MatchContent, StateSet> > Map;  //由匹配内容，状态集合构成的pair
-		for (auto state : head.Set) //对于队列头部的状态集合中的每一个状态
+		auto dfa_status = L.front();
+		L.pop(); //取出一个状态
+
+		vector<pair<_MatchContent, DFA_Status*> > content_DFAStatus_Map;
+		for (auto nfa_status : dfa_status->status_set) //遍历DFA状态的NFA状态集合
 		{
-			for (auto edge : state->OutEdges) //对于状态的每一条出边
+			for (auto edge : nfa_status->OutEdges)  //对于每一条出边
 			{
-				auto iter = Map.begin();
-				if ((iter = find_if(Map.begin(), Map.end(), [&](pair<_MatchContent, StateSet>& p){return p.first == edge->MatchContent; })) != Map.end())
-					(*iter).second.add_state(edge->End); //如果该边对应的pair已经存在，则直接将状态加入到状态集合中
-				else //不存在则创建一个新的pair
+				auto iter = find_if(content_DFAStatus_Map.begin(), content_DFAStatus_Map.end(), [&](pair<_MatchContent, DFA_Status*>& p){return p.first == edge->MatchContent; });
+				if (iter != content_DFAStatus_Map.end()) //如果有匹配相同内容的边
+					(*iter).second->add_nfa(edge->End); //直接将到达的状态加入已经存在的DFA状态中
+				else
 				{
-					StateSet _set;
-					tmp.add_state(edge->End);
-					auto tmp = make_pair(edge->MatchContent, _set);
-					Map.push_back(tmp);
+					content_DFAStatus_Map.push_back(make_pair(edge->MatchContent, new DFA_Status(edge->End)));
 				}
 			}
-		} 
-		for (auto m : Map)
+		} //此时对于DFA状态的转移状态处理完毕
+
+		for (auto p : content_DFAStatus_Map)
 		{
-			auto iter = find(D.begin(), D.end(), m.second);
-			if (iter != D.end()) //D中已经有此状态集合
+			auto exist = is_status_exist(p.second, D);
+			if (exist >= 0) //如果该状态已经存在于D中
 			{
-				make_edge(Set2Status(head), m.first, Set2Status(*iter));
+				AllEdges.push_back(make_edge(dfa_status, p.first, D[exist])); //只需建立边即可
+				delete p.second; //释放多余状态
 			}
 			else
 			{
-				D.push_back(m.second);
-				make_edge(Set2Status(head), m.first, Set2Status(*(D.rbegin())));
+				D.push_back(p.second); //将新的DFA状态加入D
+				AllEdges.push_back(make_edge(dfa_status, p.first, *D.rbegin())); //建立边
+				L.push(p.second);
+
 			}
 		}
-
-
 	}
-	*/
-	queue<Status*> L; //未被处理的NFA状态
-	vector<Status*> D;//已经存在的DFA状态
-	L.push(nfa.start_status); //加入开始状态
-	D.push_back(nfa.start_status);
-	//AllStatus.push_back(nfa.start_status);
-	while (!L.empty())
-	{
-		Status* head = L.front();
-		L.pop();
-		vector<pair<_MatchContent, Status*> > Map;  //由匹配内容，状态集合构成的pair
-		for (auto edge : head->OutEdges)
-		{
-			auto iter = find_if(DFAEdges.begin(), DFAEdges.end(), [&](Edge* e){return e->Start == edge->Start&&e->MatchContent == edge->MatchContent; });
-			if (iter != DFAEdges.end())
-			{
-				for (auto e : edge->End->OutEdges) //将重复状态的出边复制到已经存在的DFA状态上
-					(*iter)->End->OutEdges.push_back(e);
-
-					//删除重复状态
-					nfa.destroy_edge(edge);
-					nfa.AllStatus.erase(find(nfa.AllStatus.begin(), nfa.AllStatus.end(), edge));
-			}
-			
-
-		}
-	}
+	AllStatus.insert(AllStatus.end(), D.begin(), D.end());
 }
-DFA_Status* Set2Status(const StateSet& _set)
+
+DFA_Edge* make_edge(DFA_Status* b, _MatchContent content, DFA_Status* e)
 {
-	DFA_Status* dfa_status = new DFA_Status;
-	for (auto nfa_status : _set.Set)
-	{
-		for (auto nfa_edge : nfa_status->OutEdges) 
-		{
-			dfa_status->OutEdges.push_back(nfa_edge);
-		}
-	}
-	return dfa_status;
+	return new DFA_Edge(b, content, e);
 }
-Edge* make_edge(Status* b, _MatchContent content, Status* e)
+int is_status_exist(DFA_Status* dfa_status, vector<DFA_Status*>& d) //在d中搜寻是否有dfa_status的存在（注意DFA状态的相等是指其中所含有的NFA状态一致）
 {
-	return new Edge(b,content,e);
+	for (auto iter = d.begin(); iter != d.end(); ++iter)
+	{
+		if (is_dfa_status_equal(dfa_status, *iter))
+			return iter - d.begin();
+	}
+	return -1;
+}
+bool is_dfa_status_equal(DFA_Status* status1, DFA_Status* status2)
+{
+	if (status1->status_set.size() != status2->status_set.size())
+		return false;
+
+	auto iter1 = status1->status_set.begin();
+	auto iter2 = status2->status_set.begin();
+	for (; iter1 != status1->status_set.end(); ++iter1, ++iter2)
+	{
+		if ((*iter1) != (*iter2)) // NFA状态相同可直接通过指针判断
+			return false;     //另，因为使用set容器已排好序，所以直接按顺序比较即可
+	}
+	return true;
 }
