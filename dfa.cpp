@@ -73,7 +73,7 @@ int is_status_exist(DFA_Status* dfa_status, vector<DFA_Status*>& d) //ÔÚdÖĞËÑÑ°Ê
 	}
 	return -1;
 }
-bool is_dfa_status_equal(DFA_Status* status1, DFA_Status* status2)
+bool is_dfa_status_equal(const DFA_Status* status1,const DFA_Status* status2)
 {
 	if (status1->status_set.size() != status2->status_set.size())
 		return false;

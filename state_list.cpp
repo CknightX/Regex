@@ -4,9 +4,6 @@ void Matrix::construct(int n)
 	matrix = new int*[n];
 	for (int i = 0; i < n; ++i)
 		matrix[i] = new int[MAX_CHAR];
-	for (int i = 0; i < n; ++i)
-		for (int j = 0; j < MAX_CHAR; ++j)
-			matrix[i][j] = 0;
 }
 void Matrix::destruct()
 {
@@ -25,6 +22,10 @@ State_List::State_List(DFA& dfa)
 		return iter - dfa.AllStatus.begin();
 	};
 
+	start_status = find_status(dfa.AllStatus[0]);
+	for (int i = 0; i < matrix.getN(); ++i)
+		for (int j = 0; j < MAX_CHAR; ++j)
+			matrix.set(start_status, i, j);
 	int status_no = -1;
 	for (auto status : dfa.AllStatus)
 	{
@@ -37,12 +38,19 @@ State_List::State_List(DFA& dfa)
 
 		for (auto edge : dfa.AllEdges)
 		{
-			int pos = find_status(edge->End);
-			for (int i = edge->MatchContent.left; i <= edge->MatchContent.right; ++i)
+			if (is_dfa_status_equal(edge->Begin, status))
 			{
-				matrix.set(pos, status_no, i);
+				int pos = find_status(edge->End);
+				for (int i = edge->MatchContent.left; i <= edge->MatchContent.right; ++i)
+				{
+					matrix.set(pos, status_no, i);
+				}
 			}
 		}
 	}
-
+	for (auto iter = dfa.AllStatus.begin(); iter != dfa.AllStatus.end(); ++iter)
+	{
+		if ((*iter)->IsFinal)
+			end_pos.push_back(iter - dfa.AllStatus.begin());
+	}
 }

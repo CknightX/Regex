@@ -6,6 +6,7 @@
 #include<set>
 using namespace std;
 
+
 class DFA_Status
 {
 public:
@@ -48,9 +49,9 @@ public:
 	 
 };
 
-
 DFA_Edge* make_edge(DFA_Status* b, _MatchContent content, DFA_Status* e);
 int is_status_exist(DFA_Status* dfa_status, vector<DFA_Status*>& d); //在d中搜寻是否有dfa_status的存在（注意DFA状态的相等是指其中所含有的NFA状态一致）
-bool is_dfa_status_equal(DFA_Status* status1, DFA_Status* status2);
+bool is_dfa_status_equal(const DFA_Status* status1,const  DFA_Status* status2);
+
 
 #endif

@@ -28,6 +28,9 @@ pair<Status*, Status*> NFA::gen_status(Node* node)
 	case Node::OR:
 		status = gen_or(node);
 		break;
+	case Node::RANGE:
+		status = gen_range(node);
+		break;
 	case Node::REPEAT_0:
 		status = gen_repeat_0(node);
 		break;
@@ -41,18 +44,17 @@ pair<Status*, Status*> NFA::gen_status(Node* node)
 }
 pair<Status*, Status*> NFA::gen_range(Node* node)
 {
-	Range_Node* char_node = static_cast<Range_Node*>(node);
+	Range_Node* range_node = static_cast<Range_Node*>(node);
 	Status* s_start = new Status;
 	Status* s_end = new Status(true);
-	Edge* edge = make_edge(s_start, _MatchContent(char_node->c, char_node->c), s_end);
+	Edge* edge = make_edge(s_start, _MatchContent(range_node->i,range_node->j), s_end);
 
-	start_status = s_start;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_repeat_0(Node* node)
 {
 	Repeat_Node* repeat_node = static_cast<Repeat_Node*>(node);
-	Status* s_start = new Status;
+	Status* s_start = new Status(true);
 	Status* s_end = s_start;
 	Status* _s_start = nullptr;
 	Status* _s_end = nullptr;
@@ -62,26 +64,19 @@ pair<Status*, Status*> NFA::gen_repeat_0(Node* node)
 	make_edge(s_start, _s_start);
 	make_edge(_s_end, s_end);
 
-	start_status = s_start;
 	return make_pair(s_start, s_end);
 
 }
 pair<Status*, Status*> NFA::gen_repeat_1(Node* node)
 {
 	Repeat_Node* repeat_node = static_cast<Repeat_Node*>(node);
-	Status* s_start = new Status;
-	Status* s_end = new Status(true);
-	Status* _s_start = new Status;
-	Status* _s_end = new Status;
+	Status* s_start = nullptr;
+	Status* s_end = nullptr;
 	pair<Status*, Status*> s_child = gen_status(repeat_node->node);
-	make_edge(s_start, s_child.first);
-	make_edge(s_child.second, s_end);
-	make_edge(_s_start, s_child.first);
-	make_edge(s_child.second, _s_end);
-	make_edge(s_end, _s_start);
-	make_edge(_s_end, s_end);
-
-	start_status = s_start;
+	make_edge(s_child.second, s_child.first);
+	s_start = s_child.first;
+	s_end = s_child.second;
+	s_end->IsFinal = true;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_and(Node* node)
@@ -102,21 +97,20 @@ pair<Status*, Status*> NFA::gen_and(Node* node)
 		make_edge(s_end,tmp.first);
 		s_end = tmp.second;
 	}
-	start_status = s_start;
+	s_end->IsFinal= true;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_or(Node* node)
 {
 	Or_Node* or_node = static_cast<Or_Node*>(node);
 	Status* s_start = new Status;
-	Status* s_end = new Status;
+	Status* s_end = new Status(true);
 	for (auto s : *(or_node)->pool)
 	{
 		auto tmp = gen_status(s);
 		make_edge(s_start, tmp.first);
 		make_edge(tmp.second, s_end);
 	}
-	start_status = s_start;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_char(Node* node)
@@ -126,25 +120,13 @@ pair<Status*, Status*> NFA::gen_char(Node* node)
 	Status* s_end = new Status(true);
 	Edge* edge = make_edge(s_start, _MatchContent(char_node->c, char_node->c), s_end);
 
-	start_status = s_start;
 	return make_pair(s_start,s_end);
 }
-pair<Status*, Status*> NFA::gen_range(Node* node)
-{
-	Range_Node* char_node = static_cast<Range_Node*>(node);
-	Status* s_start = new Status;
-	Status* s_end = new Status(true);
-	Edge* edge = make_edge(s_start, _MatchContent(char_node->i, char_node->j), s_end);
 
-	start_status = s_start;
-	return make_pair(s_start,s_end);
-}
 Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd)
 {
-	/*
-	if (status1->IsFinal)
+	if (content.left!=-1&&status1->IsFinal)
 		status1->IsFinal = false;
-		*/
 	auto edge = new Edge(status1, content, status2);
 
 	if (isAdd)
@@ -202,7 +184,10 @@ void NFA::E2NFA() //NFA转化为DFA
 				}
 			}
 		} //已获得当前status的所有E闭包
-		vector<Edge*> valid_edges; //所有由E闭包延伸出的非E边
+		vector<Edge*> valid_edges; //所有由本身及E闭包延伸出的非E边
+		for (auto edge:status->OutEdges)
+			if (!_isEedge(edge))
+				valid_edges.push_back(edge);
 		for (auto E_status : closure_status)
 		{
 			for (auto edge : E_status->OutEdges)

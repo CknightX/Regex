@@ -28,7 +28,11 @@ Node* Parser::DealUnit()
 	}
 	else if (curr == '[')
 	{
-
+		char c = GetChar();
+		GetChar(); //-
+		char d = GetChar();
+		GetChar(); //]
+		return new Range_Node(c, d);
 	}
 	else if (curr == '{')
 	{
@@ -36,18 +40,31 @@ Node* Parser::DealUnit()
 	}
 	else if (curr == '\\')
 	{
-		char c = GetChar(); // \s \d
+		char c = GetChar(); // \w \d
 		switch (c)
 		{
-		case 's':
+		case 'w':
 			return new Range_Node('A', 'z');
 			break;
 		case 'd':
 			return new Range_Node('0', '9');
 			break;
+		case '(':
+			return new Range_Node('(', '(');
+			break;
+		case ')':
+			return new Range_Node(')', ')');
+			break;
+		case '.':
+			return new Range_Node('.', '.');
+			break;
 		default:
 			throw;
 		}
+	}
+	else if (curr == '.')
+	{
+		return new Range_Node(1, 255);
 	}
 	else //¹Ì¶¨×Ö·û
 	{

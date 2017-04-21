@@ -12,10 +12,10 @@ using namespace std;
 
 int main()
 {
-	Parser a("\\d"); //(ab.+)*|a*
+	Parser a("([a-z]|[0-9])\\.([a-z]|[0-9])"); //(ab.+)*|a*
 	//Parser a("a|b"); //(ab.+)*|a*
 	Re b(a);
-	cout<<b.match("aa2babbaba");
+	cout<<b.match_all("3.4sss4.3s");
 	cin.get();
 	return 0;
 }
