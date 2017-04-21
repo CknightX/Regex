@@ -1,6 +1,7 @@
 #ifndef _NODE_H
 #define _NODE_H
 #include<vector>
+#include<algorithm>
 using namespace std;
 class Node
 {
@@ -34,6 +35,7 @@ public:
 	And_Node(node_pool* _pool) :Node(AND), pool(_pool){}
 	~And_Node()
 	{
+		pool->erase(unique(pool->begin(), pool->end()), pool->end()); //去除重复元素，因为对于{n}的处理，一个pool内放置了多个重复地址。
 		for (auto node : *(pool))
 			delete node;
 	}

@@ -125,7 +125,7 @@ pair<Status*, Status*> NFA::gen_char(Node* node)
 
 Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd)
 {
-	if (content.left!=-1&&status1->IsFinal)
+	if (isAdd&content.left!=-1&&status1->IsFinal)
 		status1->IsFinal = false;
 	auto edge = new Edge(status1, content, status2);
 

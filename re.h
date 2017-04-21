@@ -8,13 +8,14 @@
 class Re
 {
 public:
-	Re(Parser& parser) :nfa(parser.GenTree()), dfa(nfa), state_list(dfa),curr_index(0){}
+	Re(const string& pattern) :parser(pattern),nfa(parser.GenTree()), dfa(nfa), state_list(dfa),curr_index(0){}
 	string match(const string& source);
 	string match_all(const string& source);
 private:
+	Parser parser;
 	NFA nfa;
 	DFA dfa;
 	State_List state_list;
-	int curr_index;
+	unsigned curr_index;
 };
 #endif

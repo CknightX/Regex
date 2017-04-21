@@ -34,10 +34,6 @@ Node* Parser::DealUnit()
 		GetChar(); //]
 		return new Range_Node(c, d);
 	}
-	else if (curr == '{')
-	{
-
-	}
 	else if (curr == '\\')
 	{
 		char c = GetChar(); // \w \d
@@ -81,9 +77,22 @@ Node* Parser::DealBlock()
 	{
 		return new Repeat_Node(unit_node, Node::REPEAT_1);
 	}
-	if (curr == '*')
+	else if (curr == '*')
 	{
 		return new Repeat_Node(unit_node, Node::REPEAT_0);
+	}
+	else if (curr == '{')
+	{
+		char c;
+		int sum = 0;
+		while ((c = GetChar()) != '}')
+			sum = 10 * sum + (c - '0');
+		auto pool = new node_pool;
+		for (int i = 0; i < sum; ++i)
+		{
+			pool->push_back(unit_node);
+		}
+		return new And_Node(pool);
 	}
 	if (curr != -1)
 		Throw_Char();

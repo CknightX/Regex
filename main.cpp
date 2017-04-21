@@ -12,10 +12,14 @@ using namespace std;
 
 int main()
 {
-	Parser a("([a-z]|[0-9])\\.([a-z]|[0-9])"); //(ab.+)*|a*
 	//Parser a("a|b"); //(ab.+)*|a*
-	Re b(a);
-	cout<<b.match_all("3.4sss4.3s");
+	Parser a("[0-9]+");
+	NFA b(a.GenTree());
+	DFA c(b);
+	State_List d(c);
+
+	Re g("[0-9]+");
+	cout<<g.match_all("d192.168.1.13wqd");
 	cin.get();
 	return 0;
 }
