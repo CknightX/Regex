@@ -43,7 +43,7 @@ Node* Parser::DealUnit()
 			return new Range_Node('A', 'z');
 			break;
 		case 'd':
-			return new Range_Node('0', '1');
+			return new Range_Node('0', '9');
 			break;
 		default:
 			throw;

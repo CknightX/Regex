@@ -40,9 +40,8 @@ class DFA
 {
 public:
 	DFA(NFA& nfa){ constructDFA(nfa); }
-	void _test(){ cout << AllEdges.size() <<endl<< AllStatus.size(); }
 	~DFA(){}
-private:
+	void _test(){ cout << AllEdges.size() <<endl<< AllStatus.size(); }
 	void constructDFA(NFA& nfa);
 	vector<DFA_Edge*> AllEdges;
 	vector<DFA_Status*> AllStatus;

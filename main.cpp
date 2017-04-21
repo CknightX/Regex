@@ -5,17 +5,17 @@
 #include <algorithm>
 #include "nfa.h"
 #include "dfa.h"
+#include "state_list.h"
+#include "re.h"
 using namespace std;
 
 
 int main()
 {
-	Parser a("abc(a|b|c)*cba"); //(ab.+)*|a*
-	//Parser a("a|bc"); //(ab.+)*|a*
-	auto b = a.GenTree();
-	NFA c(b);
-	DFA d(c);
-	d._test();
+	Parser a("\\d"); //(ab.+)*|a*
+	//Parser a("a|b"); //(ab.+)*|a*
+	Re b(a);
+	cout<<b.match("aa2babbaba");
 	cin.get();
 	return 0;
 }

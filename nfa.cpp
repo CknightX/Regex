@@ -39,6 +39,16 @@ pair<Status*, Status*> NFA::gen_status(Node* node)
 	}
 	return status;
 }
+pair<Status*, Status*> NFA::gen_range(Node* node)
+{
+	Range_Node* char_node = static_cast<Range_Node*>(node);
+	Status* s_start = new Status;
+	Status* s_end = new Status(true);
+	Edge* edge = make_edge(s_start, _MatchContent(char_node->c, char_node->c), s_end);
+
+	start_status = s_start;
+	return make_pair(s_start, s_end);
+}
 pair<Status*, Status*> NFA::gen_repeat_0(Node* node)
 {
 	Repeat_Node* repeat_node = static_cast<Repeat_Node*>(node);
