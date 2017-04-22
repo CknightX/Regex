@@ -8,6 +8,7 @@ NFA::NFA(Node* Tree)
 	start_status = status.first;
 	end_status = status.second;
 	E2NFA();
+	start_status->IsFinal = false; //整体的开始状态不能作为结束状态，防止接收任意字符使其匹配结束
 	//find_end_status();
 }
 NFA::~NFA()

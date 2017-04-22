@@ -11,7 +11,6 @@ string Re::match_all(const string& source)
 }
 string Re::match(const string& source)
 { 
-	state_list._test();
 	unsigned i=curr_index,i_bak=i-1; //source сн╠Й
 	int start_pos = state_list.get_start();
 	int curr_status = start_pos;
