@@ -7,8 +7,8 @@ NFA::NFA(Node* Tree)
 	auto status=gen_status(Tree);
 	start_status = status.first;
 	end_status = status.second;
+    end_status->IsFinal=true;
 	E2NFA();
-	start_status->IsFinal = false; //整体的开始状态不能作为结束状态，防止接收任意字符使其匹配结束
 	//find_end_status();
 }
 NFA::~NFA()
@@ -47,7 +47,7 @@ pair<Status*, Status*> NFA::gen_range(Node* node)
 {
 	Range_Node* range_node = static_cast<Range_Node*>(node);
 	Status* s_start = new Status;
-	Status* s_end = new Status(true);
+	Status* s_end = new Status;
 	Edge* edge = make_edge(s_start, _MatchContent(range_node->i,range_node->j), s_end);
 
 	return make_pair(s_start, s_end);
@@ -55,7 +55,7 @@ pair<Status*, Status*> NFA::gen_range(Node* node)
 pair<Status*, Status*> NFA::gen_repeat_0(Node* node)
 {
 	Repeat_Node* repeat_node = static_cast<Repeat_Node*>(node);
-	Status* s_start = new Status(true);
+	Status* s_start = new Status;
 	Status* s_end = s_start;
 	Status* _s_start = nullptr;
 	Status* _s_end = nullptr;
@@ -77,7 +77,6 @@ pair<Status*, Status*> NFA::gen_repeat_1(Node* node)
 	make_edge(s_child.second, s_child.first);
 	s_start = s_child.first;
 	s_end = s_child.second;
-	s_end->IsFinal = true;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_and(Node* node)
@@ -94,18 +93,16 @@ pair<Status*, Status*> NFA::gen_and(Node* node)
 			s_end = tmp.second;
 			continue;
 		}
-		s_end->IsFinal = false;
 		make_edge(s_end,tmp.first);
 		s_end = tmp.second;
 	}
-	s_end->IsFinal= true;
 	return make_pair(s_start, s_end);
 }
 pair<Status*, Status*> NFA::gen_or(Node* node)
 {
 	Or_Node* or_node = static_cast<Or_Node*>(node);
 	Status* s_start = new Status;
-	Status* s_end = new Status(true);
+	Status* s_end = new Status;
 	for (auto s : *(or_node)->pool)
 	{
 		auto tmp = gen_status(s);
@@ -118,7 +115,7 @@ pair<Status*, Status*> NFA::gen_char(Node* node)
 {
 	Char_Node* char_node = static_cast<Char_Node*>(node);
 	Status* s_start = new Status;
-	Status* s_end = new Status(true);
+	Status* s_end = new Status;
 	Edge* edge = make_edge(s_start, _MatchContent(char_node->c, char_node->c), s_end);
 
 	return make_pair(s_start,s_end);
@@ -126,8 +123,6 @@ pair<Status*, Status*> NFA::gen_char(Node* node)
 
 Edge* NFA::make_edge(Status* status1, _MatchContent content, Status* status2,bool isAdd)
 {
-	if (isAdd&content.left!=-1&&status1->IsFinal)
-		status1->IsFinal = false;
 	auto edge = new Edge(status1, content, status2);
 
 	if (isAdd)
@@ -180,6 +175,8 @@ void NFA::E2NFA() //NFA转化为DFA
 			{
 				if (_isEedge(edge)) //以该状态为起始的E边
 				{
+					if (edge->End->IsFinal)
+						status->IsFinal=true;
 					uncomplete_status.push(edge->End);
 					closure_status.push_back(edge->End);
 				}
@@ -213,10 +210,13 @@ void NFA::E2NFA() //NFA转化为DFA
 	AllStatus.erase(remove_if(AllStatus.begin(), AllStatus.end(), 
 		[&](Status* s){return !_isValidStatus(s);}),AllStatus.end()); //删除所有无效状态
 
+
+	int finish_sum=0;
+	for_each(AllStatus.begin(),AllStatus.end(),[&](Status* s){if (s->IsFinal) ++finish_sum;});
 }
 bool NFA::_isValidStatus(Status* s)
 {
-	if (s == start_status)
+	if (s == start_status||s->IsFinal)
 		return true; //start_status 保留
 	if (s->InEdges.empty())
 		return false;
@@ -236,11 +236,4 @@ void NFA::eraseE()
 	//for_each(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){if (_isEedge(edge))destroy_edge(edge); }); //destroy每条E边
 	AllEdges.erase(remove_if(AllEdges.begin(), AllEdges.end(), [&](Edge* edge){if (_isEedge(edge)) { destroy_edge(edge); return true; } return false; }), AllEdges.end()); //从AllEdges删除所有E边
 
-}
-void NFA::find_end_status()
-{
-	for_each(AllStatus.begin(), AllStatus.end(),[&](Status* status){
-		if (status->OutEdges.size() == 0)//入边为0
-			status->IsFinal = true;
-	});
 }

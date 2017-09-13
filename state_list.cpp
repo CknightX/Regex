@@ -19,7 +19,7 @@ State_List::State_List(DFA& dfa)
 	auto find_status = [&](DFA_Status* status){
 		auto iter = find(dfa.AllStatus.begin(), dfa.AllStatus.end(), status);
 		if (iter == dfa.AllStatus.end()) return -1;
-		return iter - dfa.AllStatus.begin();
+		return (int)(iter - dfa.AllStatus.begin());
 	};
 
 	start_status = find_status(dfa.AllStatus[0]);

@@ -10,7 +10,7 @@ using namespace std;
 class Parser
 {
 public:
-	Parser(const string s) :reg(s){}
+	Parser(const string s) :reg(s),index(0){}
 	Node* GenTree(){return (Tree=DealOr()); }
 	Node* GetTree(){ return Tree; }
 	~Parser(){ Deallocate(); }

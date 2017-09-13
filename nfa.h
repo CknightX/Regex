@@ -7,7 +7,7 @@ using namespace std;
 struct _MatchContent
 {
 	_MatchContent(int l, int r) :left(l), right(r){}
-	int left, right; //Æ¥ÅäµÄ×óÓÒ±ß½ç
+	int left, right; //Æ¥ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò±ß½ï¿½
 	bool operator==(const _MatchContent& m){ return left == m.left&&right == m.right; }
 };
 
@@ -16,7 +16,7 @@ class Edge
 {
 public:
 	Edge(Status* s, _MatchContent m ,Status* e) :Start(s), End(e), MatchContent(m){}
-	~Edge(){} //ÊÍ·Å±ß²¢²»ÊÍ·ÅÆäÆðµãºÍÖÕµã
+	~Edge(){} //ï¿½Í·Å±ß²ï¿½ï¿½ï¿½ï¿½Í·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õµï¿½
 	_MatchContent MatchContent;
 	Status* Start;
 	Status* End;
@@ -26,7 +26,7 @@ public:
 class Status
 {
 public:
-	Status(bool _is=false) :IsFinal(_is){}
+	Status() :IsFinal(false){}
 	~Status();
 	vector<Edge*> InEdges;
 	vector<Edge*> OutEdges;
@@ -43,7 +43,7 @@ public:
 	~NFA();
 
 public:
-	//pairÖÐµÄÖ¸Õë·Ö±ðÎª¸Ã×ÓÍ¼µÄstartºÍend
+	//pairï¿½Ðµï¿½Ö¸ï¿½ï¿½Ö±ï¿½Îªï¿½ï¿½ï¿½ï¿½Í¼ï¿½ï¿½startï¿½ï¿½end
 	pair<Status*, Status*> gen_status(Node* node);
 	pair<Status*, Status*> gen_and(Node* node);
 	pair<Status*, Status*> gen_or(Node* node);
@@ -58,11 +58,11 @@ public:
 	Edge* make_edge(Status* status1, _MatchContent content, Status* status2, bool isAdd = true);
 	Edge* make_edge(Status* status1, Status* status2, bool isAdd = true);
 
-	vector<Edge*> AllEdges; //¿¼ÂÇÌæ»»Îªmap£¬Ìá¸ßÐ§ÂÊ¡£map<Status*,Edge_link>
+	vector<Edge*> AllEdges; //ï¿½ï¿½ï¿½ï¿½ï¿½æ»»Îªmapï¿½ï¿½ï¿½ï¿½ï¿½Ð§ï¿½Ê¡ï¿½map<Status*,Edge_link>
 	vector<Status*> AllStatus;
 
-	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s) == AllStatus.end()); } //×´Ì¬ÊÇ·ñ´æÔÚ
-	bool _isEedge(Edge* edge){ return (edge->MatchContent.left == -1); } //ÊÇ·ñÎªE±ß
+	bool _isStatusExist(Status*s){ return !(find(AllStatus.begin(), AllStatus.end(), s) == AllStatus.end()); } //×´Ì¬ï¿½Ç·ï¿½ï¿½ï¿½ï¿½
+	bool _isEedge(Edge* edge){ return (edge->MatchContent.left == -1); } //ï¿½Ç·ï¿½ÎªEï¿½ï¿½
 	bool _isValidStatus(Status* s);
 
 	void add_edge(Edge* edge){ AllEdges.push_back(edge); edge->Start->OutEdges.push_back(edge); edge->End->InEdges.push_back(edge); }
@@ -70,10 +70,10 @@ public:
 	void set_edge_E(Edge* edge){ edge->MatchContent.left = edge->MatchContent.right = -1; }
 	void destroy_edge(Edge* edge)
 	{
-		edge->Start->OutEdges.erase(find(edge->Start->OutEdges.begin(), edge->Start->OutEdges.end(), edge)); //É¾³ýÆðµãµÄ³ö±ß
-		edge->End->InEdges.erase(find(edge->End->InEdges.begin(), edge->End->InEdges.end(), edge)); //É¾³ýÖÕµãµÄ³ö±ß
-		delete edge; //ÊÍ·ÅÄÚ´æ
-		//×¢Òâ£¬´ËÊ±»¹Î´´ÓAllEdgeÖÐÉ¾³ý´Ë±ß
+		edge->Start->OutEdges.erase(find(edge->Start->OutEdges.begin(), edge->Start->OutEdges.end(), edge)); //É¾ï¿½ï¿½ï¿½ï¿½ï¿½Ä³ï¿½ï¿½ï¿½
+		edge->End->InEdges.erase(find(edge->End->InEdges.begin(), edge->End->InEdges.end(), edge)); //É¾ï¿½ï¿½ï¿½Õµï¿½Ä³ï¿½ï¿½ï¿½
+		delete edge; //ï¿½Í·ï¿½ï¿½Ú´ï¿½
+		//×¢ï¿½â£¬ï¿½ï¿½Ê±ï¿½ï¿½Î´ï¿½ï¿½AllEdgeï¿½ï¿½É¾ï¿½ï¿½ï¿½Ë±ï¿½
 	}
 
 	void eraseE();

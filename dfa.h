@@ -11,9 +11,9 @@ class DFA_Status
 {
 public:
 	DFA_Status():IsFinal(false){}
-	DFA_Status(Status* status){ add_nfa(status); } //ÒÔµ¥¸öNFA×´Ì¬¹¹ÔìDFA×´Ì¬
-	set<Status*> status_set; //¶ÔÓ¦NFAµÄ×´Ì¬
-	void add_nfa(Status* status){ status_set.insert(status); if (status->IsFinal)IsFinal = true; } //¼ÓÈëNFA×´Ì¬
+	DFA_Status(Status* status):IsFinal(false){ add_nfa(status); } //ï¿½Ôµï¿½ï¿½ï¿½NFA×´Ì¬ï¿½ï¿½ï¿½ï¿½DFA×´Ì¬
+	set<Status*> status_set; //ï¿½ï¿½Ó¦NFAï¿½ï¿½×´Ì¬
+	void add_nfa(Status* status){ status_set.insert(status); if (status->IsFinal)IsFinal = true; } //ï¿½ï¿½ï¿½ï¿½NFA×´Ì¬
 	bool IsFinal;
 };
 class DFA_Edge
@@ -50,7 +50,7 @@ public:
 };
 
 DFA_Edge* make_edge(DFA_Status* b, _MatchContent content, DFA_Status* e);
-int is_status_exist(DFA_Status* dfa_status, vector<DFA_Status*>& d); //ÔÚdÖĞËÑÑ°ÊÇ·ñÓĞdfa_statusµÄ´æÔÚ£¨×¢ÒâDFA×´Ì¬µÄÏàµÈÊÇÖ¸ÆäÖĞËùº¬ÓĞµÄNFA×´Ì¬Ò»ÖÂ£©
+int is_status_exist(DFA_Status* dfa_status, vector<DFA_Status*>& d); //ï¿½ï¿½dï¿½ï¿½ï¿½ï¿½Ñ°ï¿½Ç·ï¿½ï¿½ï¿½dfa_statusï¿½Ä´ï¿½ï¿½Ú£ï¿½×¢ï¿½ï¿½DFA×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğµï¿½NFA×´Ì¬Ò»ï¿½Â£ï¿½
 bool is_dfa_status_equal(const DFA_Status* status1,const  DFA_Status* status2);
 
 

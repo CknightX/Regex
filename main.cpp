@@ -3,23 +3,23 @@
 #include<vector>
 #include<memory>
 #include <algorithm>
-#include "nfa.h"
-#include "dfa.h"
-#include "state_list.h"
 #include "re.h"
 using namespace std;
 
 
 int main()
 {
-	//Parser a("a|b"); //(ab.+)*|a*
-	Parser a("[0-9]+\\.");
-	NFA b(a.GenTree());
-	DFA c(b);
-	State_List d(c);
-//	d._test();
-	Re g("[0-9]*\\.");
-	cout<<g.match_all("d.192.168.1.13wqd");
+	Re g("((aa|bb)|((ab|ba)(aa|bb)*(ab|ba)))*"); //匹配偶数个a和偶数个b
+	cout<<g.match("a")<<endl;
+	cout<<g.match("ab")<<endl;
+	cout<<g.match("aa")<<endl;
+	cout<<g.match("bb")<<endl;
+	cout<<g.match("abab")<<endl;
+	cout<<g.match("aaabbbb")<<endl;
+	cout<<g.match("abbbba")<<endl;
+	cout<<g.match("aaaaabbbb")<<endl;
+	cout<<g.match("ababababab")<<endl;
+	cout<<g.match("babababababa")<<endl;
 	cin.get();
 	return 0;
 }

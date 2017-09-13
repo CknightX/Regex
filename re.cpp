@@ -11,7 +11,8 @@ string Re::match_all(const string& source)
 }
 string Re::match(const string& source)
 { 
-	unsigned i=curr_index,i_bak=i-1; //source ÓÎ±ê
+	curr_index=0;
+	unsigned i=curr_index,i_bak=i-1; //source ï¿½Î±ï¿½
 	int start_pos = state_list.get_start();
 	int curr_status = start_pos;
 	if (curr_status == -1)
@@ -19,25 +20,25 @@ string Re::match(const string& source)
 	string result="";
 	while (true)
 	{
-		if (curr_status == start_pos) //Î»ÓÚ¿ªÊ¼×´Ì¬£¬ÓÎ±ê»Ö¸´µ½Ô­±¸·Ý+1
+		if (curr_status == start_pos) //Î»ï¿½Ú¿ï¿½Ê¼×´Ì¬ï¿½ï¿½ï¿½Î±ï¿½Ö¸ï¿½ï¿½ï¿½Ô­ï¿½ï¿½ï¿½ï¿½+1
 		{
 			result = "";
 			i = ++i_bak;
 		}
-		if (i >= source.size()) //ÓÎ±êÒÆ¶¯µ½½áÎ²
+		if (i >= source.size()) //ï¿½Î±ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Î²
 			break;
 		curr_status = state_list.get_status(curr_status, source[i]);
-		if (curr_status == -1) //µ½´ïÄ©Î²×´Ì¬£¬²¢½ÓÊÜÒ»¸ö²»ÄÜÊ¹Æä×ªÒÆµÄ×Ö·û
+		if (curr_status == -1) //ï¿½ï¿½ï¿½ï¿½Ä©Î²×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½×ªï¿½Æµï¿½ï¿½Ö·ï¿½
 			break;
 		result += source[i];
 		++i;
 	}
-	if (state_list.is_in_end_pos(curr_status) || curr_status == -1) //´¦ÓÚ½áÊø×´Ì¬(½ö»á³öÏÖÔÚ*+Æ¥Åäµ½×îºóÒ»¸ö×Ö·ûµÄÇé¿ö) || Ä©Î²Î´×ªÒÆ
+	if (state_list.is_in_end_pos(curr_status) || curr_status == -1) //ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½×´Ì¬(ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½*+Æ¥ï¿½äµ½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½) || Ä©Î²Î´×ªï¿½ï¿½
 	{
 		curr_index = i_bak+result.size();
 		return result;
 	}
-	else //Ö±µ½½áÎ²¶¼Ã»ÓÐÆ¥Åäµ½
+	else //Ö±ï¿½ï¿½ï¿½ï¿½Î²ï¿½ï¿½Ã»ï¿½ï¿½Æ¥ï¿½äµ½
 	{
 		curr_index = source.size();
 	}

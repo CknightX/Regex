@@ -9,7 +9,7 @@ public:
 	enum TYPE{ CHAR, RANGE,AND, OR, REPEAT_0, REPEAT_1 };
 	TYPE type;
 	Node(TYPE _type) :type(_type){}
-	virtual ~Node() = 0{}
+	virtual ~Node(){}
 };
 
 typedef vector<Node*> node_pool;
@@ -35,7 +35,7 @@ public:
 	And_Node(node_pool* _pool) :Node(AND), pool(_pool){}
 	~And_Node()
 	{
-		pool->erase(unique(pool->begin(), pool->end()), pool->end()); //È¥³ýÖØ¸´ÔªËØ£¬ÒòÎª¶ÔÓÚ{n}µÄ´¦Àí£¬Ò»¸öpoolÄÚ·ÅÖÃÁË¶à¸öÖØ¸´µØÖ·¡£
+		pool->erase(unique(pool->begin(), pool->end()), pool->end()); //È¥ï¿½ï¿½ï¿½Ø¸ï¿½Ôªï¿½Ø£ï¿½ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½{n}ï¿½Ä´ï¿½ï¿½ï¿½Ò»ï¿½ï¿½poolï¿½Ú·ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½ï¿½ï¿½Ø¸ï¿½ï¿½ï¿½Ö·ï¿½ï¿½
 		for (auto node : *(pool))
 			delete node;
 	}
@@ -62,6 +62,6 @@ public:
 	{
 		delete node;
 	}
-	Node* node; //ÖØ¸´¶ÔÏó
+	Node* node; //ï¿½Ø¸ï¿½ï¿½ï¿½ï¿½ï¿½
 };
 #endif
